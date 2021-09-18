@@ -3,9 +3,9 @@ const base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base('appTDzZI
 const axios = require('axios');
 let currentDate = new Date();
 
-/*
-console.log("Current Date: " ,currentDate)
-*/
+
+console.log("Current Date/Time: " ,currentDate)
+
 
 
 // retrieve all records in "T-1 Events" view in "Live Events" table
@@ -20,14 +20,17 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
         let reminderSent = record.get('(D) T-1 Set Reminder');
         let announcementSent = record.get('(D) T-1h Event Announcement');
 
-        if((timeDifferenceHours >= 1) && (timeDifferenceHours >=0)){
+        if((timeDifferenceHours <= 2) && (timeDifferenceHours >=0)){
 
             if(reminderSent != true){
                 // if reminder is not checked, send reminder to corresponding channel and check "(D) T-1 Set Reminder"
                 console.log('Reminder Set:', record.get('(D) T-1 Set Reminder'));
 
+                //postMessageToTeams('Reminder', record.get('Name (A):') + " starts at " + record.get('Start (AT) (12h) (F) (A):') + " | " + record.get('Start (US) (12h) (F) (A):'), record.get('(D) Teams Webhook (A)'))
+                postMessageToTeams('Reminder', "<b>" + record.get('Name (A):') + "</b>" + " starts at <br><br>" + record.get('Start (AT) (12h) (F) (A):') + "<br>" + record.get('Start (US) (12h) (F) (A):'), process.env.TEAMS_REMINDERS_WEBHOOK)
 
-                //postMessageToTeams('Reminder', 'Testmessage for ' + record.get('Name (A):'))
+
+                //updateReminderCheckbox(record.id, true)
 
             }
 
@@ -45,14 +48,13 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
                     record.get('Start (US) (12h) (F) (A):') + "<br><br>" +
                     "RBCOM" + "</br>" +
                     "<a href=\"" + record.get('(D) Bitly (Red Bull COM)') + "\">" + record.get('(D) Bitly (Red Bull COM)') +"</a>" + "<br><br>" +
-                    //record.get('(D) Bitly (Red Bull COM)') + "<br><br>" +
                     "TEAMS\n" +
                     "RBCOM" + "</br>" +
                     "<a href=\"" + record.get('(D) Bitly TEAMS Channel Link') + "\">" + record.get('(D) Bitly TEAMS Channel Link') +"</a>";
 
-                console.log("Message: \n" + message)
-
                 postMessageToTeams('Event Announcement', message, process.env.TEAMS_REMINDERS_WEBHOOK)
+
+                //updateAnnouncementCheckbox(record.id, true)
 
             }
 
@@ -105,4 +107,44 @@ async function postMessageToTeams(title, message, webhook) {
     } catch (err) {
         return err;
     }
+}
+
+function updateAnnouncementCheckbox(id, value){
+
+    base('Live Events').update([
+        {
+            "id": id,
+            "fields": {
+                "(D) T-1h Event Announcement": value
+            }
+        },
+    ], function(err, records) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        records.forEach(function(record) {
+            console.log(record.get('Name (A):'));
+        });
+    });
+}
+
+function updateReminderCheckbox(id, value){
+
+    base('Live Events').update([
+        {
+            "id": id,
+            "fields": {
+                "(D) T-1 Set Reminder": value
+            }
+        },
+    ], function(err, records) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        records.forEach(function(record) {
+            console.log(record.get('Name (A):'));
+        });
+    });
 }

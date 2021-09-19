@@ -14,15 +14,22 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
     // This function (`page`) will get called for each page of records.
     //checkboxes in Airtable are true, if checked, but undefined if unchecked (not really logical, I guess, but oh well...)
 
+
+    //Console Output of all found records in view "T-1 Events"
+    console.log('Found the following records: ')
+            records.forEach(function(record) {
+                console.log(record.get('Name (A):'));
+            });
+
     records.forEach(function(record) {
         let eventDate = new Date(record.get('Start (UTC) (12h):'));
         let timeDifferenceHours = (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60);
         let reminderSent = record.get('(D) T-1 Set Reminder');
         let announcementSent = record.get('(D) T-1h Event Announcement');
 
-        if((timeDifferenceHours <= 2) && (timeDifferenceHours >=0)){
+        if((timeDifferenceHours <= 1) && (timeDifferenceHours >=0)){
 
-            if(reminderSent != true){
+            if(reminderSent !== true){
                 // if reminder is not checked, send reminder to corresponding channel and check "(D) T-1 Set Reminder"
                 console.log('Reminder Set:', record.get('(D) T-1 Set Reminder'));
 
@@ -34,7 +41,7 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
 
             }
 
-            if(announcementSent != true){
+            if(announcementSent !== true){
                 // if announcement is not checked, send announcement to General channel and check "(D) T-1h Event Announcement"
                 console.log('Event Announcement:', record.get('(D) T-1h Event Announcement'));
 
@@ -58,13 +65,6 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
 
             }
 
-            // console name output of all records found
-            console.log('Retrieved', record.get('Name (A):'));
-
-
-            // test what is actually in the Link field to the channels
-            console.log('Teams Channel Content:', record.get('(D) Teams Webhook (A)'))
-
         }
 
     });
@@ -75,7 +75,7 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
     fetchNextPage();
 
 }, function done(err) {
-    if (err) { console.error(err); return; }
+    if (err) { console.error(err);  }
 });
 
 
@@ -93,8 +93,6 @@ async function postMessageToTeams(title, message, webhook) {
             },
         ],
     };
-
-    console.log("Card: " + card);
 
     try {
         const response = await axios.post(webhook, card, {

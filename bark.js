@@ -24,11 +24,12 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
     records.forEach(function(record) {
         let eventDate = new Date(record.get('Start (UTC) (12h):'));
         let timeDifferenceHours = (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60);
-        let reminderSent = record.get('(D) T-1 Set Reminder');
+        //let reminderSent = record.get('(D) T-1 Set Reminder');
         let announcementSent = record.get('(D) T-1h Event Announcement');
 
         if((timeDifferenceHours <= 1) && (timeDifferenceHours >=0)){
 
+            /*
             if(reminderSent !== true){
                 // if reminder is not checked, send reminder to corresponding channel and check "(D) T-1 Set Reminder"
                 console.log('Reminder Set:', record.get('(D) T-1 Set Reminder'));
@@ -37,9 +38,10 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
                 postMessageToTeams('Reminder', "<b>" + record.get('Name (A):') + "</b>" + " starts at <br><br>" + record.get('Start (AT) (12h) (F) (A):') + "<br>" + record.get('Start (US) (12h) (F) (A):'), process.env.TEAMS_REMINDERS_WEBHOOK)
 
 
-                //updateReminderCheckbox(record.id, true)
+                //updateReminderCheckbox('Live Events', record.id, true)
 
             }
+            */
 
             if(announcementSent !== true){
                 // if announcement is not checked, send announcement to General channel and check "(D) T-1h Event Announcement"
@@ -59,9 +61,9 @@ base('Live Events').select({view: 'T-1 Events'}).eachPage(function page(records,
                     "RBCOM" + "</br>" +
                     "<a href=\"" + record.get('(D) Bitly TEAMS Channel Link') + "\">" + record.get('(D) Bitly TEAMS Channel Link') +"</a>";
 
-                postMessageToTeams('Event Announcement', message, process.env.TEAMS_REMINDERS_WEBHOOK)
+                postMessageToTeams('Event Announcement', message, process.env.TEAMS_RB_GENERAL_CHANNEL_WEBHOOK)
 
-                //updateAnnouncementCheckbox(record.id, true)
+                updateAnnouncementCheckbox('Live Events' ,record.id, true)
 
             }
 
@@ -107,9 +109,9 @@ async function postMessageToTeams(title, message, webhook) {
     }
 }
 
-function updateAnnouncementCheckbox(id, value){
+function updateAnnouncementCheckbox(baseName, id, value){
 
-    base('Live Events').update([
+    base(baseName).update([
         {
             "id": id,
             "fields": {
@@ -127,9 +129,10 @@ function updateAnnouncementCheckbox(id, value){
     });
 }
 
-function updateReminderCheckbox(id, value){
+/*
+function updateReminderCheckbox(baseName ,id, value){
 
-    base('Live Events').update([
+    base(baseName).update([
         {
             "id": id,
             "fields": {
@@ -145,4 +148,6 @@ function updateReminderCheckbox(id, value){
             console.log(record.get('Name (A):'));
         });
     });
+
 }
+*/
